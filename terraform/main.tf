@@ -67,9 +67,9 @@ resource "aws_security_group" "sg" {
   }
 }
 
-#data "template_file" "user_data" {
- # template = file("./scripts/user_data.sh")
-  #}
+data "template_file" "user_data" {
+  template = file("./scripts/user_data.sh")
+  }
 
 resource "aws_launch_template" "lt" {
   name                   = "ltemplate"

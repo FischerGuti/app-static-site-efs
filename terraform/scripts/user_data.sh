@@ -6,7 +6,7 @@ yum install -y amazon-efs-utils httpd telnet tree git
 #/usr/bin/python3 /tmp/get-pip.py
 #/usr/local/bin/pip3 install botocore
 mkdir /mnt/efs
-echo "${efs_id}:/ /mnt/efs efs _netdev,noresvport,tls 0 0" >> /etc/fstab
+#echo "${efs_id}:/ /mnt/efs efs _netdev,noresvport,tls 0 0" >> /etc/fstab
 x=10
 while (( $x > 0 )); do
   mount -fav
