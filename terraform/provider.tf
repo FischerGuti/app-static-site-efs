@@ -5,6 +5,7 @@ terraform {
       version = ">= 4.34.0"
     }
   }
+  
     backend "s3" {
     bucket         = "gsquevaidarcertodofishinho"
     key            = "terraform.tfstate"

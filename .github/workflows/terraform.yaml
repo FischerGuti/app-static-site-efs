@@ -4,8 +4,7 @@ on:
   push:
     branches:
     - main
-    paths:
-    -  '**.tf'
+    
 
 env:
   TERRAFORM_VERSION: 1.6.2
