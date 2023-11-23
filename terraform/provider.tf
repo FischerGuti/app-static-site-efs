@@ -15,9 +15,9 @@ terraform {
   }
 
   backend "s3" {
-    bucket         = "tf-state-efs-bucket"
+    bucket         = "gsquevaidarcertodofishinho"
     key            = "terraform.tfstate"
-    dynamodb_table = "tf-state-efs-table"
+    dynamodb_table = "tabeladodofishinho"
     region         = "us-east-1"
   }
 

@@ -16,12 +16,6 @@ resource "aws_subnet" "sn1" {
   availability_zone       = "us-east-1a"
 }
 
-resource "aws_subnet" "sn2" {
-  vpc_id                  = aws_vpc.vpc.id
-  cidr_block              = "10.0.3.0/24"
-  map_public_ip_on_launch = "true"
-  availability_zone       = "us-east-1c"
-}
 
 resource "aws_route_table" "rt" {
   vpc_id = aws_vpc.vpc.id
@@ -37,10 +31,10 @@ resource "aws_route_table_association" "rt_sn1" {
   route_table_id = aws_route_table.rt.id
 }
 
-resource "aws_route_table_association" "rt_sn2" {
-  subnet_id      = aws_subnet.sn2.id
-  route_table_id = aws_route_table.rt.id
-}
+#resource "aws_route_table_association" "rt_sn2" {
+ # subnet_id      = aws_subnet.sn2.id
+  #route_table_id = aws_route_table.rt.id
+#}
 
 resource "aws_security_group" "sg" {
   name        = "sg"
@@ -73,54 +67,12 @@ resource "aws_security_group" "sg" {
   }
 }
 
-resource "aws_efs_file_system" "efs" {
-  #  availability_zone_name = "us-east-1a"
-  encrypted = false
-}
-
-resource "aws_efs_file_system_policy" "efs_policy" {
-  file_system_id                     = aws_efs_file_system.efs.id
-  bypass_policy_lockout_safety_check = true
-  policy                             = <<POLICY
-{
-    "Version": "2012-10-17",
-    "Id": "efs-policy-efs",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Principal": {
-                "AWS": "*"
-            },
-            "Action": [
-                "elasticfilesystem:*"
-            ],
-            "Resource": [
-                "arn:aws:elasticfilesystem:us-east-1:${data.aws_caller_identity.current.account_id}:file-system/${aws_efs_file_system.efs.id}"
-            ]
-        }
-    ]
-}
-POLICY
-}
-
-resource "aws_efs_mount_target" "mount1" {
-  file_system_id  = aws_efs_file_system.efs.id
-  subnet_id       = aws_subnet.sn1.id
-  security_groups = [aws_security_group.sg.id]
-}
-
-resource "aws_efs_mount_target" "mount2" {
-  file_system_id  = aws_efs_file_system.efs.id
-  subnet_id       = aws_subnet.sn2.id
-  security_groups = [aws_security_group.sg.id]
-}
-
-data "template_file" "user_data" {
-  template = file("./scripts/user_data.sh")
-  vars = {
-    efs_id = aws_efs_file_system.efs.id
-  }
-}
+#data "template_file" "user_data" {
+ # template = file("./scripts/user_data.sh")
+  #vars = {
+   # efs_id = aws_efs_file_system.efs.id
+  #}
+#}
 
 resource "aws_launch_template" "lt" {
   name                   = "ltemplate"
@@ -131,10 +83,19 @@ resource "aws_launch_template" "lt" {
   vpc_security_group_ids = [aws_security_group.sg.id]
 }
 
+resource "aws_launch_template" "instace" {
+  name                   = "instace"
+  image_id               = "ami-02e136e904f3da870"
+  instance_type          = "t2.micro"
+  key_name               = "vockey"
+  user_data              = base64encode(data.template_file.user_data.rendered)
+  vpc_security_group_ids = [aws_security_group.sg.id]
+}
+
 resource "aws_lb" "lb" {
   name               = "lb"
   load_balancer_type = "application"
-  subnets            = [aws_subnet.sn1.id, aws_subnet.sn2.id]
+  subnets            = [aws_subnet.sn1.id]
   security_groups    = [aws_security_group.sg.id]
 }
 
@@ -161,7 +122,7 @@ resource "aws_autoscaling_group" "asg" {
   desired_capacity    = "4"
   min_size            = "2"
   max_size            = "8"
-  vpc_zone_identifier = [aws_subnet.sn1.id, aws_subnet.sn2.id]
+  vpc_zone_identifier = [aws_subnet.sn1.id]
   target_group_arns   = [aws_lb_target_group.tg.arn]
   launch_template {
     id      = aws_launch_template.lt.id
